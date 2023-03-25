@@ -4,3 +4,8 @@ provision-eks-cluster/.terraform/
 provision-eks-cluster/.DS_Store
 provision-eks-cluster/terraform.tfstate
 provision-eks-cluster/terraform.tfstate.backup
+kubernetes/.terraform.lock.hcl
+kubernetes/.terraform/
+kubernetes/.DS_Store
+kubernetes/terraform.tfstate
+kubernetes/terraform.tfstate.backup
