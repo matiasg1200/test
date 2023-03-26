@@ -1,6 +1,12 @@
 # Sysops test
 This repo is a wip aimed to accomplish the tasks of the sysops test.
 
+## Terraform Workflow
+Current Terraform workflow is divided into two steps:
+
+    1. Deploy EKS Cluster -> provision-eks-cluster/main.tf
+    2. Install ArgoCD and deploy statics and api applications -> kubernetes/kubernetes.tf
+
 ## EKS Infrastrecutre
 Terraform code under the **provision-eks-cluster** directory uses the files from the [Learn Terraform - Provision an EKS Cluster](https://github.com/hashicorp/learn-terraform-provision-eks-cluster) repo as starting point adding *.tfvars files to distinguish deploys beteween different environemnts (dev, stage, production).
 
@@ -14,14 +20,11 @@ For example:
 
 This will deploy a *dev-vpc* and a *dev-cluster* attached to it.
 
-## Argo CD 
-
-
 ## Kubernetes
-At this point the Kubernetes objects have not been added to the Terraform code yet so under the Kubernetes directory there are manifests for both applications (api-application is still wip)(nginx is not rounting requestes to /statics).
+Terraform code under the **kubernetes** directory deploys and install [ArgoCD](https://argoproj.github.io/cd/) on the Cluster and deploys an ingress controller to route requests between the statics and api services.
+This configuration uses the [Kubectl provider](https://registry.terraform.io/providers/gavinbunney/kubectl/latest) provider and `terraform_remote_state` pointing at the Terraform resoruces deployed during EKS Cluster creation.
 
-Once the EKS Cluster is running Kubernetes workloads can be deployed using `kubectl apply -f {desired_file}`. 
-
+### Connect to the Cluster
 To connect to the Cluster update kube/config file running the following command:
 
 `aws eks --region us-east-1 update-kubeconfig --name cluster_name`
