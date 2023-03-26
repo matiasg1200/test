@@ -44,25 +44,92 @@ provider "kubectl" {
   }
 }
 
-data "kubectl_file_documents" "namespace" {
-    content = file("./argocd/namespace.yaml")
+#Create data objects for each namespaces
+data "kubectl_file_documents" "argocd-namespace" {
+    content = file("./namespaces/argocd-namespace.yaml")
 } 
 
+data "kubectl_file_documents" "echoserver-namespace" {
+    content = file("./namespaces/echoserver-namespace.yaml")
+}
+
+data "kubectl_file_documents" "nginx-namespace" {
+    content = file("./namespaces/nginx-namespace.yaml")
+}
+
+#Create data objects to install argocd
 data "kubectl_file_documents" "argocd" {
     content = file("./argocd/install.yaml")
 }
 
-resource "kubectl_manifest" "namespace" {
-    count     = length(data.kubectl_file_documents.namespace.documents)
-    yaml_body = element(data.kubectl_file_documents.namespace.documents, count.index)
+#Create data objects to deploy apps
+data "kubectl_file_documents" "echoserver-app" {
+    content = file("./argocd/apps/echoserver.yaml")
+}
+
+data "kubectl_file_documents" "statics-app" {
+    content = file("./argocd/apps/statics.yaml")
+}
+
+#Create data objects to deploy ingress
+data "kubectl_file_documents" "ingress" {
+    content = file("./manifests/ingress.yaml")
+}
+
+#Apply namespaces
+resource "kubectl_manifest" "argocd-namespace" {
+    count     = length(data.kubectl_file_documents.argocd-namespace.documents)
+    yaml_body = element(data.kubectl_file_documents.argocd-namespace.documents, count.index)
     
 }
 
+resource "kubectl_manifest" "echoserver-namespace" {
+    count     = length(data.kubectl_file_documents.echoserver-namespace.documents)
+    yaml_body = element(data.kubectl_file_documents.echoserver-namespace.documents, count.index)
+    
+}
+
+resource "kubectl_manifest" "nginx-namespace" {
+    count     = length(data.kubectl_file_documents.nginx-namespace.documents)
+    yaml_body = element(data.kubectl_file_documents.nginx-namespace.documents, count.index)
+    
+}
+
+#Install Argocd
 resource "kubectl_manifest" "argocd" {
     depends_on = [
-      kubectl_manifest.namespace,
+      kubectl_manifest.argocd-namespace,
     ]
-    count     = length(data.kubectl_file_documents.argocd.documents)
-    yaml_body = element(data.kubectl_file_documents.argocd.documents, count.index)
+    count     = length(data.kubectl_file_documents.argocd-namespace.documents)
+    yaml_body = element(data.kubectl_file_documents.argocd-namespace.documents, count.index)
     
+}
+
+#Deploy apps
+resource "kubectl_manifest" "echoserver-app" {
+    depends_on = [
+      kubectl_manifest.argocd,
+    ]
+    count     = length(data.kubectl_file_documents.echoserver-app.documents)
+    yaml_body = element(data.kubectl_file_documents.echoserver-app.documents, count.index)
+    override_namespace = "echoserver"
+}
+
+resource "kubectl_manifest" "statics-app" {
+    depends_on = [
+      kubectl_manifest.argocd,
+    ]
+    count     = length(data.kubectl_file_documents.statics-app.documents)
+    yaml_body = element(data.kubectl_file_documents.statics-app.documents, count.index)
+    override_namespace = "nginx"
+}
+
+#Deploy ingress
+resource "kubectl_manifest" "ingress" {
+    depends_on = [
+      kubectl_manifest.echoserver-app,
+      kubectl_manifest.statics-app,
+    ]
+    count     = length(data.kubectl_file_documents.ingress.documents)
+    yaml_body = element(data.kubectl_file_documents.ingress.documents, count.index)
 }
