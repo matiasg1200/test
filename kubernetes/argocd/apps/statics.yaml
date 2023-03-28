@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/matiasg1200/test.git
     targetRevision: HEAD
-    path: kubernetes/statics-application/
+    path: kubernetes/manifests/statics-application/
   destination:
     server: https://kubernetes.default.svc
     namespace: nginx
