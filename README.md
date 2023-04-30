@@ -1,5 +1,7 @@
-# Sysops test
-This repo is a wip aimed to accomplish the tasks of the sysops test.
+### WIP
+
+# EKS - ArgoCD
+The goal of this project is to deploy an EKS cluster with ArgoCD and two sample web apps using Terraform. 
 
 ## Terraform Workflow
 Current Terraform workflow is divided into two steps:
